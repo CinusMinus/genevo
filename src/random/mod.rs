@@ -43,7 +43,7 @@ pub fn random_index_from_range<R>(rng: &mut R, min: usize, max: usize) -> usize
 where
     R: Rng + Sized,
 {
-    rng.gen_range(min, max)
+    rng.gen_range(min..max)
 }
 
 /// Generates two cut points for a slice of given length using the given `Prng`.
@@ -65,8 +65,8 @@ where
     assert!(max >= min + 4);
     let max_slice = max - min - 2;
     loop {
-        let cutpoint1 = rng.gen_range(min, max);
-        let cutpoint2 = rng.gen_range(min, max);
+        let cutpoint1 = rng.gen_range(min..max);
+        let cutpoint2 = rng.gen_range(min..max);
         if cutpoint1 < cutpoint2 {
             if cutpoint2 - cutpoint1 >= max_slice {
                 continue;

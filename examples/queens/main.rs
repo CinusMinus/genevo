@@ -101,7 +101,7 @@ impl RandomValueMutation for Pos {
     {
         Pos {
             x: value.x,
-            y: rng.gen_range(min_value.y, max_value.y),
+            y: rng.gen_range(min_value.y..max_value.y),
         }
     }
 }
@@ -117,7 +117,7 @@ impl GenomeBuilder<Positions> for QueensPositions {
         (0..NUM_ROWS)
             .map(|row| Pos {
                 x: row,
-                y: rng.gen_range(0, NUM_COLS),
+                y: rng.gen_range(0..NUM_COLS),
             })
             .collect()
     }
