@@ -20,6 +20,13 @@ use crate::{
     operator::{GeneticOperator, SelectionOp, SingleObjective},
     random::{random_probability, WeightedDistribution, Prng},
 };
+use std::sync::{Arc, Mutex};
+use rayon::iter::{IntoParallelIterator, ParallelIterator, IndexedParallelIterator};
+use rand::distributions::WeightedIndex;
+use rand::prelude::Distribution;
+use crate::random::SampleUniform;
+use std::ops::AddAssign;
+use std::borrow::Borrow;
 
 /// The `RouletteWheelSelector` implements stochastic fitness proportionate
 /// selection. Each candidate is picked randomly with a probability of being
@@ -85,23 +92,32 @@ impl GeneticOperator for RouletteWheelSelector {
 impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
 where
     G: Genotype,
-    F: Fitness + AsScalar + SampleUniform + for<'a> AddAssign<&'a F> + Default,
+    F: Fitness + AsScalar + SampleUniform + for<'a> AddAssign<&'a F> + Default + Sync,
+    <F as SampleUniform>::Sampler: Sync,
 {
     fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
-        let individuals = evaluated.individuals();
+        let rc_individuals = evaluated.individuals();
+        let individuals: &Vec<_> = rc_individuals.borrow();
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
-        let mut parents = Vec::with_capacity(num_parents_to_select);
-        let weighted_distribution =
-            WeightedDistribution::from_scalar_values(evaluated.fitness_values());
-        for _ in 0..num_parents_to_select {
-            let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
-            for _ in 0..self.num_individuals_per_parents {
-                let random = random_probability(rng) * weighted_distribution.sum();
-                let selected = weighted_distribution.select(random);
-                tuple.push(individuals[selected].clone());
-            }
-            parents.push(tuple);
+        let mut parents: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
+        let weighted_distribution = WeightedIndex::new(evaluated.fitness_values()).unwrap();
+            //WeightedDistribution::from_scalar_values(evaluated.fitness_values());
+        {
+            let arc = Arc::new(Mutex::new(rng));
+            (0..num_parents_to_select).into_par_iter().map_init(|| {
+                let mut rng = arc.lock().unwrap();
+                let rng1 = rng.clone();
+                rng.jump();
+                rng1
+            }, |rng, _| {
+                let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
+                for _ in 0..self.num_individuals_per_parents {
+                    let selected = weighted_distribution.sample(rng);
+                    tuple.push(individuals[selected].clone());
+                }
+                tuple
+            }).collect_into_vec(&mut parents);
         }
         parents
     }
