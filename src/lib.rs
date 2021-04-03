@@ -95,10 +95,6 @@
 )]
 #![deny(unsafe_code)]
 
-#[cfg(test)]
-#[macro_use]
-extern crate galvanic_assert;
-
 pub mod prelude;
 
 pub mod genetic;

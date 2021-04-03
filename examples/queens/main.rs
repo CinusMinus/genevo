@@ -1,7 +1,7 @@
 //! The `queens` example searches for solutions of the
 //! [N Queens Problem](https://en.wikipedia.org/wiki/Eight_queens_puzzle)
 
-use genevo::{operator::prelude::*, prelude::*, random::Rng, types::fmt::Display};
+use genevo::{operator::prelude::*, prelude::*, random::{Rng, Prng}, types::fmt::Display};
 
 const NUMBER_OF_QUEENS: i16 = 16;
 const NUM_ROWS: i16 = NUMBER_OF_QUEENS;
@@ -95,10 +95,7 @@ impl BreederValueMutation for Pos {
 }
 
 impl RandomValueMutation for Pos {
-    fn random_mutated<R>(value: Self, min_value: &Pos, max_value: &Pos, rng: &mut R) -> Self
-    where
-        R: Rng + Sized,
-    {
+    fn random_mutated(value: Self, min_value: &Pos, max_value: &Pos, rng: &mut Prng) -> Self {
         Pos {
             x: value.x,
             y: rng.gen_range(min_value.y..max_value.y),
@@ -110,10 +107,7 @@ impl RandomValueMutation for Pos {
 struct QueensPositions;
 
 impl GenomeBuilder<Positions> for QueensPositions {
-    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Positions
-    where
-        R: Rng + Sized,
-    {
+    fn build_genome(&self, _: usize, rng: &mut Prng) -> Positions {
         (0..NUM_ROWS)
             .map(|row| Pos {
                 x: row,

@@ -6,7 +6,7 @@ use crate::{
     algorithm::EvaluatedPopulation,
     genetic::{Fitness, Genotype, Offspring},
     operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective},
-    random::{random_index, Rng},
+    random::{random_index, Prng},
 };
 
 /// The `UniformReinserter` takes n individuals from the offspring and
@@ -68,15 +68,12 @@ where
     G: Genotype,
     F: Fitness,
 {
-    fn combine<R>(
+    fn combine(
         &self,
         offspring: &mut Offspring<G>,
         evaluated: &EvaluatedPopulation<G, F>,
-        rng: &mut R,
-    ) -> Vec<G>
-    where
-        R: Rng + Sized,
-    {
+        rng: &mut Prng,
+    ) -> Vec<G> {
         let old_individuals = evaluated.individuals();
         let population_size = old_individuals.len();
         let mut new_population = Vec::with_capacity(population_size);

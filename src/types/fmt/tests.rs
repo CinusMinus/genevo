@@ -1,6 +1,7 @@
 use super::*;
 use chrono::Duration;
 use galvanic_assert::matchers::*;
+use galvanic_assert::*;
 
 #[test]
 fn duration_fmt_zero() {

@@ -3,7 +3,7 @@
 
 use crate::{
     operator::{GeneticOperator, MutationOp},
-    random::{random_cut_points, Rng},
+    random::{random_cut_points, Rng, Prng},
 };
 use std::fmt::Debug;
 
@@ -37,10 +37,7 @@ impl<V> MutationOp<Vec<V>> for InsertOrderMutator
 where
     V: Clone + Debug + PartialEq + Send + Sync,
 {
-    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R) -> Vec<V>
-    where
-        R: Rng + Sized,
-    {
+    fn mutate(&self, genome: Vec<V>, rng: &mut Prng) -> Vec<V> {
         let genome_length = genome.len();
         let num_mutations =
             ((genome_length as f64 * self.mutation_rate) + rng.gen::<f64>()).floor() as usize;
@@ -84,10 +81,7 @@ impl<V> MutationOp<Vec<V>> for SwapOrderMutator
 where
     V: Clone + Debug + PartialEq + Send + Sync,
 {
-    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R) -> Vec<V>
-    where
-        R: Rng + Sized,
-    {
+    fn mutate(&self, genome: Vec<V>, rng: &mut Prng) -> Vec<V> {
         let genome_length = genome.len();
         let num_mutations =
             ((genome_length as f64 * self.mutation_rate) + rng.gen::<f64>()).floor() as usize;

@@ -9,7 +9,7 @@ use crate::{
     algorithm::EvaluatedPopulation,
     genetic::{Fitness, Genotype, Parents},
     operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective},
-    random::Rng,
+    random::Prng,
 };
 
 /// The `MaximizeSelector` selects the best performing `genetic::Genotype`s
@@ -83,10 +83,7 @@ where
     G: Genotype,
     F: Fitness,
 {
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, _: &mut R) -> Vec<Parents<G>>
-    where
-        R: Rng + Sized,
-    {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, _: &mut Prng) -> Vec<Parents<G>> {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 

@@ -14,7 +14,7 @@
 use crate::{
     genetic::{Children, Genotype, Parents},
     operator::{CrossoverOp, GeneticOperator},
-    random::{random_n_cut_points, Rng},
+    random::{random_n_cut_points, Prng, Rng},
 };
 use std::fmt::Debug;
 
@@ -45,10 +45,7 @@ impl<V> CrossoverOp<Vec<V>> for UniformCrossBreeder
 where
     V: Clone + Debug + PartialEq + Send + Sync,
 {
-    fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R) -> Children<Vec<V>>
-    where
-        R: Rng + Sized,
-    {
+    fn crossover(&self, parents: Parents<Vec<V>>, rng: &mut Prng) -> Children<Vec<V>> {
         let genome_length = parents[0].len();
         let num_parents = parents.len();
         // breed one child for each partner in parents
@@ -74,14 +71,12 @@ mod fixedbitset_uniform_cross_breeder {
     use crate::{
         genetic::{Children, Parents},
         operator::CrossoverOp,
+        random::{Prng, Rng}
     };
     use fixedbitset::FixedBitSet;
-    use rand::Rng;
 
     impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
-        fn crossover<R>(&self, parents: Parents<FixedBitSet>, rng: &mut R) -> Children<FixedBitSet>
-        where
-            R: Rng + Sized,
+        fn crossover(&self, parents: Parents<FixedBitSet>, rng: &mut Prng) -> Children<FixedBitSet>
         {
             let genome_length = parents[0].len();
             let num_parents = parents.len();
@@ -107,7 +102,7 @@ mod fixedbitset_uniform_cross_breeder {
 mod smallvec_uniform_cross_breeder {
     use super::UniformCrossBreeder;
     use crate::operator::CrossoverOp;
-    use rand::Rng;
+    use crate::random::{Prng, Rng};
     use smallvec::{Array, SmallVec};
     use std::fmt::Debug;
 
@@ -116,9 +111,7 @@ mod smallvec_uniform_cross_breeder {
         A: Array<Item = V> + Sync,
         V: Clone + Debug + PartialEq + Send + Sync,
     {
-        fn crossover<R>(&self, parents: Vec<SmallVec<A>>, rng: &mut R) -> Vec<SmallVec<A>>
-        where
-            R: Rng + Sized,
+        fn crossover(&self, parents: Vec<SmallVec<A>>, rng: &mut Prng) -> Vec<SmallVec<A>>
         {
             let genome_length = parents[0].len();
             let num_parents = parents.len();
@@ -167,10 +160,7 @@ impl<G> CrossoverOp<G> for SinglePointCrossBreeder
 where
     G: Genotype + MultiPointCrossover,
 {
-    fn crossover<R>(&self, parents: Parents<G>, rng: &mut R) -> Children<G>
-    where
-        R: Rng + Sized,
-    {
+    fn crossover(&self, parents: Parents<G>, rng: &mut Prng) -> Children<G> {
         MultiPointCrossover::crossover(parents, 1, rng)
     }
 }
@@ -215,10 +205,7 @@ impl<G> CrossoverOp<G> for MultiPointCrossBreeder
 where
     G: Genotype + MultiPointCrossover,
 {
-    fn crossover<R>(&self, parents: Parents<G>, rng: &mut R) -> Children<G>
-    where
-        R: Rng + Sized,
-    {
+    fn crossover(&self, parents: Parents<G>, rng: &mut Prng) -> Children<G> {
         MultiPointCrossover::crossover(parents, self.num_cut_points, rng)
     }
 }
@@ -226,9 +213,7 @@ where
 pub trait MultiPointCrossover: Genotype {
     type Dna;
 
-    fn crossover<R>(parents: Parents<Self>, num_cut_points: usize, rng: &mut R) -> Children<Self>
-    where
-        R: Rng + Sized;
+    fn crossover(parents: Parents<Self>, num_cut_points: usize, rng: &mut Prng) -> Children<Self>;
 }
 
 impl<V> MultiPointCrossover for Vec<V>
@@ -237,10 +222,7 @@ where
 {
     type Dna = V;
 
-    fn crossover<R>(parents: Parents<Self>, num_cut_points: usize, rng: &mut R) -> Children<Self>
-    where
-        R: Rng + Sized,
-    {
+    fn crossover(parents: Parents<Self>, num_cut_points: usize, rng: &mut Prng) -> Children<Self> {
         let genome_length = parents[0].len();
         let num_parents = parents.len();
         // breed one child for each partner in parents
@@ -280,7 +262,7 @@ where
 mod smallvec_multipoint_crossover {
     use super::{random_n_cut_points, MultiPointCrossover};
     use crate::genetic::{Children, Parents};
-    use rand::Rng;
+    use crate::random::{Prng, Rng};
     use smallvec::{Array, SmallVec};
     use std::fmt::Debug;
 
@@ -291,14 +273,11 @@ mod smallvec_multipoint_crossover {
     {
         type Dna = V;
 
-        fn crossover<R>(
+        fn crossover(
             parents: Parents<Self>,
             num_cut_points: usize,
-            rng: &mut R,
-        ) -> Children<Self>
-        where
-            R: Rng + Sized,
-        {
+            rng: &mut Prng,
+        ) -> Children<Self> {
             let genome_length = parents[0].len();
             let num_parents = parents.len();
             // breed one child for each partner in parents
@@ -340,19 +319,16 @@ mod fixedbitset_multipoint_crossover {
     use super::{random_n_cut_points, MultiPointCrossover};
     use crate::genetic::{Children, Parents};
     use fixedbitset::FixedBitSet;
-    use rand::Rng;
+    use crate::random::{Prng, Rng};
 
     impl MultiPointCrossover for FixedBitSet {
         type Dna = bool;
 
-        fn crossover<R>(
+        fn crossover(
             parents: Parents<FixedBitSet>,
             num_cut_points: usize,
-            rng: &mut R,
-        ) -> Children<FixedBitSet>
-        where
-            R: Rng + Sized,
-        {
+            rng: &mut Prng,
+        ) -> Children<FixedBitSet> {
             let genome_length = parents[0].len();
             let num_parents = parents.len();
             // breed one child for each partner in parents

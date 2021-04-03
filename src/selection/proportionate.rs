@@ -18,7 +18,7 @@ use crate::{
     algorithm::EvaluatedPopulation,
     genetic::{AsScalar, Fitness, Genotype, Parents},
     operator::{GeneticOperator, SelectionOp, SingleObjective},
-    random::{random_probability, Rng, WeightedDistribution},
+    random::{random_probability, WeightedDistribution, Prng},
 };
 
 /// The `RouletteWheelSelector` implements stochastic fitness proportionate
@@ -85,12 +85,9 @@ impl GeneticOperator for RouletteWheelSelector {
 impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
 where
     G: Genotype,
-    F: Fitness + AsScalar,
+    F: Fitness + AsScalar + SampleUniform + for<'a> AddAssign<&'a F> + Default,
 {
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R) -> Vec<Parents<G>>
-    where
-        R: Rng + Sized,
-    {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
         let individuals = evaluated.individuals();
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
@@ -176,10 +173,7 @@ where
     G: Genotype,
     F: Fitness + AsScalar,
 {
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R) -> Vec<Parents<G>>
-    where
-        R: Rng + Sized,
-    {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
         let individuals = evaluated.individuals();
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;

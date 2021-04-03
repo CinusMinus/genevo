@@ -7,7 +7,7 @@ use crate::{
     algorithm::EvaluatedPopulation,
     genetic::{Fitness, Genotype, Parents},
     operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective},
-    random::{random_index, random_probability, Rng},
+    random::{random_index, random_probability, Prng},
 };
 
 /// The `TournamentSelector` implements the tournament selection method.
@@ -153,10 +153,7 @@ where
     G: Genotype,
     F: Fitness,
 {
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R) -> Vec<Parents<G>>
-    where
-        R: Rng + Sized,
-    {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 

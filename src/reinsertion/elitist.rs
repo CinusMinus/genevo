@@ -6,7 +6,7 @@ use crate::{
     algorithm::EvaluatedPopulation,
     genetic::{Fitness, FitnessFunction, Genotype, Offspring},
     operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective},
-    random::Rng,
+    random::Prng,
 };
 use std::marker::PhantomData;
 
@@ -123,15 +123,12 @@ where
     F: Fitness,
     E: FitnessFunction<G, F>,
 {
-    fn combine<R>(
+    fn combine(
         &self,
         offspring: &mut Offspring<G>,
         evaluated: &EvaluatedPopulation<G, F>,
-        _: &mut R,
-    ) -> Vec<G>
-    where
-        R: Rng + Sized,
-    {
+        _: &mut Prng,
+    ) -> Vec<G> {
         let old_individuals = evaluated.individuals();
         let old_fitness_values = evaluated.fitness_values();
         // holds indices to the individuals and fitness_values slices

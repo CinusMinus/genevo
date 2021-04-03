@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use crate::{
     genetic::{Children, Parents, ParentsSlice},
     operator::{CrossoverOp, GeneticOperator},
-    random::{random_cut_points, Rng},
+    random::{random_cut_points, Rng, Prng},
 };
 
 /// The `OrderOneCrossover` operator combines permutation encoded
@@ -37,10 +37,7 @@ impl GeneticOperator for OrderOneCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for OrderOneCrossover {
-    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R) -> Children<Vec<usize>>
-    where
-        R: Rng + Sized,
-    {
+    fn crossover(&self, parents: Parents<Vec<usize>>, rng: &mut Prng) -> Children<Vec<usize>> {
         multi_parents_cyclic_crossover(&parents, order_one_crossover, rng)
     }
 }
@@ -67,10 +64,7 @@ impl GeneticOperator for PartiallyMappedCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for PartiallyMappedCrossover {
-    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R) -> Children<Vec<usize>>
-    where
-        R: Rng + Sized,
-    {
+    fn crossover(&self, parents: Parents<Vec<usize>>, rng: &mut Prng) -> Children<Vec<usize>> {
         multi_parents_cyclic_crossover(&parents, partial_mapped_crossover, rng)
     }
 }
@@ -192,6 +186,7 @@ fn partial_mapped_crossover(
 mod tests {
     use super::*;
     use galvanic_assert::matchers::*;
+    use galvanic_assert::*;
 
     #[test]
     fn order_one_crossover_cutpoints_3_6() {

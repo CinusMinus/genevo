@@ -1,5 +1,6 @@
 use super::*;
 use galvanic_assert::matchers::*;
+use galvanic_assert::*;
 use proptest::prelude::*;
 
 mod random_cut_points_from_range {

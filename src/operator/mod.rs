@@ -12,7 +12,7 @@ pub mod prelude;
 use crate::{
     algorithm::EvaluatedPopulation,
     genetic::{Children, Fitness, Genotype, Offspring, Parents},
-    random::Rng,
+    random::Prng,
 };
 
 /// Marker trait for genetic operators and functions that are used for
@@ -51,13 +51,11 @@ where
 {
     /// Selects individuals from the given population according to the
     /// implemented selection strategy.
-    fn select_from<R>(
+    fn select_from(
         &self,
         population: &EvaluatedPopulation<G, F>,
-        rng: &mut R,
-    ) -> Vec<Parents<G>>
-    where
-        R: Rng + Sized;
+        rng: &mut Prng,
+    ) -> Vec<Parents<G>>;
 }
 
 /// A `CrossoverOp` defines a function of how to crossover two
@@ -71,9 +69,7 @@ where
 {
     /// Performs the crossover of the `genetic::Parents` and returns the result
     /// as a new vector of `genetic::Genotype` - the `genetic::Children`.
-    fn crossover<R>(&self, parents: Parents<G>, rng: &mut R) -> Children<G>
-    where
-        R: Rng + Sized;
+    fn crossover(&self, parents: Parents<G>, rng: &mut Prng) -> Children<G>;
 }
 
 /// A `MutationOp` defines a function of how a `genetic::Genotype` mutates. It
@@ -90,9 +86,7 @@ where
     G: Genotype,
 {
     /// Mutates the given 'Genotype' and returns it as a new 'Genotype'.
-    fn mutate<R>(&self, genome: G, rng: &mut R) -> G
-    where
-        R: Rng + Sized;
+    fn mutate(&self, genome: G, rng: &mut Prng) -> G;
 }
 
 /// A `ReinsertionOp` defines a function that combines the offspring with the
@@ -127,12 +121,10 @@ where
     /// population. If by the end of this function all `genetic::Genotype`s in
     /// offspring have been moved to the resulting population the offspring
     /// vector should be left empty.
-    fn combine<R>(
+    fn combine(
         &self,
         offspring: &mut Offspring<G>,
         population: &EvaluatedPopulation<G, F>,
-        rng: &mut R,
-    ) -> Vec<G>
-    where
-        R: Rng + Sized;
+        rng: &mut Prng,
+    ) -> Vec<G>;
 }

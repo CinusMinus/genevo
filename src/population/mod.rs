@@ -74,9 +74,7 @@
 //!
 //! impl GenomeBuilder<Vec<Pos>> for PositionsBuilder {
 //!
-//!     fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<Pos>
-//!         where R: Rng + Sized
-//!     {
+//!     fn build_genome(&self, _: usize, rng: &mut Prng) -> Vec<Pos> {
 //!         (0..8).map(|row|
 //!             Pos {
 //!                 x: row,
@@ -189,9 +187,7 @@ where
 {
     /// Builds a new genome of type `genetic::Genotype` for the given
     /// `index` using the given random number generator `rng`.
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> G
-    where
-        R: Rng + Sized;
+    fn build_genome(&self, index: usize, rng: &mut Prng) -> G;
 }
 
 #[allow(missing_copy_implementations)]
@@ -302,10 +298,7 @@ impl BinaryEncodedGenomeBuilder {
 }
 
 impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
-    fn build_genome<R>(&self, _index: usize, rng: &mut R) -> Vec<bool>
-    where
-        R: Rng + Sized,
-    {
+    fn build_genome(&self, _index: usize, rng: &mut Prng) -> Vec<bool> {
         (0..self.genome_length).map(|_| rng.gen()).collect()
     }
 }
@@ -341,10 +334,7 @@ impl<V> GenomeBuilder<Vec<V>> for ValueEncodedGenomeBuilder<V>
 where
     V: Clone + Debug + PartialEq + PartialOrd + SampleUniform + Send + Sync,
 {
-    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<V>
-    where
-        R: Rng + Sized,
-    {
+    fn build_genome(&self, _: usize, rng: &mut Prng) -> Vec<V> {
         (0..self.genome_length)
             .map(|_| rng.gen_range(self.min_value.clone()..self.max_value.clone()))
             .collect()
@@ -353,15 +343,11 @@ where
 
 #[cfg(feature = "fixedbitset")]
 mod fixedbitset_genome_builder {
-    use super::{BinaryEncodedGenomeBuilder, GenomeBuilder};
+    use super::{BinaryEncodedGenomeBuilder, GenomeBuilder, Rng, Prng};
     use fixedbitset::FixedBitSet;
-    use rand::Rng;
 
     impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
-        fn build_genome<R>(&self, _index: usize, rng: &mut R) -> FixedBitSet
-        where
-            R: Rng + Sized,
-        {
+        fn build_genome(&self, _index: usize, rng: &mut Prng) -> FixedBitSet {
             let mut genome = FixedBitSet::with_capacity(self.genome_length);
             for bit in 0..self.genome_length {
                 genome.set(bit, rng.gen());
@@ -373,8 +359,8 @@ mod fixedbitset_genome_builder {
 
 #[cfg(feature = "smallvec")]
 mod smallvec_genome_builder {
-    use super::{BinaryEncodedGenomeBuilder, GenomeBuilder, ValueEncodedGenomeBuilder};
-    use rand::{distributions::uniform::SampleUniform, Rng};
+    use super::{BinaryEncodedGenomeBuilder, GenomeBuilder, ValueEncodedGenomeBuilder, Rng, Prng};
+    use rand::distributions::uniform::SampleUniform;
     use smallvec::{Array, SmallVec};
     use std::fmt::Debug;
 
@@ -382,10 +368,7 @@ mod smallvec_genome_builder {
     where
         A: Array<Item = bool> + Sync,
     {
-        fn build_genome<R>(&self, _index: usize, rng: &mut R) -> SmallVec<A>
-        where
-            R: Rng + Sized,
-        {
+        fn build_genome(&self, _index: usize, rng: &mut Prng) -> SmallVec<A> {
             (0..self.genome_length).map(|_| rng.gen()).collect()
         }
     }
@@ -395,10 +378,7 @@ mod smallvec_genome_builder {
         A: Array<Item = V> + Sync,
         V: Clone + Debug + PartialEq + PartialOrd + SampleUniform + Send + Sync,
     {
-        fn build_genome<R>(&self, _: usize, rng: &mut R) -> SmallVec<A>
-        where
-            R: Rng + Sized,
-        {
+        fn build_genome(&self, _: usize, rng: &mut Prng) -> SmallVec<A> {
             (0..self.genome_length)
                 .map(|_| rng.gen_range(self.min_value.clone()..self.max_value.clone()))
                 .collect()

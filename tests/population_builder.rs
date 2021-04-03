@@ -42,10 +42,7 @@ fn create_population_of_custom_genotype_uniform_at_random() {
 
     struct PositionsBuilder;
     impl GenomeBuilder<Vec<Pos>> for PositionsBuilder {
-        fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<Pos>
-        where
-            R: Rng + Sized,
-        {
+        fn build_genome(&self, _: usize, rng: &mut Prng) -> Vec<Pos> {
             (0..8)
                 .map(|row| Pos {
                     x: row,
