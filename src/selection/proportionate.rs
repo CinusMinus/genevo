@@ -24,8 +24,6 @@ use std::sync::{Arc, Mutex};
 use rayon::iter::{IntoParallelIterator, ParallelIterator, IndexedParallelIterator};
 use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
-use crate::random::SampleUniform;
-use std::ops::AddAssign;
 use std::borrow::Borrow;
 
 /// The `RouletteWheelSelector` implements stochastic fitness proportionate
@@ -92,8 +90,7 @@ impl GeneticOperator for RouletteWheelSelector {
 impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
 where
     G: Genotype,
-    F: Fitness + AsScalar + SampleUniform + for<'a> AddAssign<&'a F> + Default + Sync,
-    <F as SampleUniform>::Sampler: Sync,
+    F: Fitness + AsScalar + Default + Sync,
 {
     fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
         let rc_individuals = evaluated.individuals();
@@ -101,7 +98,7 @@ where
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let mut parents: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
-        let weighted_distribution = WeightedIndex::new(evaluated.fitness_values()).unwrap();
+        let weighted_distribution = WeightedIndex::new(evaluated.fitness_values().iter().map(|x| x.as_scalar())).unwrap();
             //WeightedDistribution::from_scalar_values(evaluated.fitness_values());
         {
             let arc = Arc::new(Mutex::new(rng));
