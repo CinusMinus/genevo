@@ -8,3 +8,5 @@
 pub mod random;
 
 pub mod elitist;
+
+pub mod elitist_parallel;
