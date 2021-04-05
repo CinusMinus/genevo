@@ -96,7 +96,7 @@ impl<G, F, E> ReinsertionOp<G, F> for ParallelElitistReinserter<G, F, E>
         let old_individuals = old_individuals_rc.as_ref();
         let old_fitness = population.fitness_values();
         let mut old_indices: Vec<_> = (0..old_fitness.len()).into_iter().collect();
-        old_indices.par_sort_unstable_by(|x, y| old_fitness[*x].cmp(&old_fitness[*y]));
+        old_indices.par_sort_unstable_by(|x, y| old_fitness[*x].cmp(&old_fitness[*y]).reverse());
         let population_size = old_individuals.len();
         let mut new_population = Vec::with_capacity(population_size);
 
@@ -104,12 +104,12 @@ impl<G, F, E> ReinsertionOp<G, F> for ParallelElitistReinserter<G, F, E>
         //evaluate offspring fitness
         let mut offspring_fitness = Vec::with_capacity(offspring.len());
         offspring.into_par_iter().map(|x| {let fitness = self.fitness_evaluator.fitness_of(&x); (x, fitness)}).collect_into_vec(&mut offspring_fitness);
-        offspring_fitness.par_sort_unstable_by(|x, y| x.1.cmp(&y.1));
+        offspring_fitness.par_sort_unstable_by(|x, y| x.1.cmp(&y.1).reverse());
 
         if self.offspring_has_precedence {
-            let old = (0..population_size - num_offspring).into_par_iter().map(|i| old_individuals[i].clone());
+            let old = old_indices.into_par_iter().map(|i| old_individuals[i].clone());
             let new = offspring_fitness.into_par_iter().take(num_offspring).map(|(o,_)| o.clone());
-            new.chain(old).collect_into_vec(&mut new_population);
+            new.chain(old).take(population_size).collect_into_vec(&mut new_population);
         } else {
             todo!()
         }
