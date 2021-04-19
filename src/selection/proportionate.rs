@@ -39,6 +39,8 @@ pub struct RouletteWheelSelector {
     selection_ratio: f64,
     /// The number of individuals per parents.
     num_individuals_per_parents: usize,
+    /// normalize fitness values linearly to lowest and highest fitness
+    normalize: bool,
 }
 
 impl RouletteWheelSelector {
@@ -47,6 +49,7 @@ impl RouletteWheelSelector {
         RouletteWheelSelector {
             selection_ratio,
             num_individuals_per_parents,
+            normalize: false
         }
     }
 
@@ -77,6 +80,12 @@ impl RouletteWheelSelector {
     pub fn set_num_individuals_per_parents(&mut self, value: usize) {
         self.num_individuals_per_parents = value;
     }
+
+    /// creates a selector that normalizes fitness values
+    pub fn as_nomalized(mut self) -> Self {
+        self.normalize = true;
+        self
+    }
 }
 
 impl SingleObjective for RouletteWheelSelector {}
@@ -98,7 +107,15 @@ where
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let mut parents: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
-        let weighted_distribution = WeightedIndex::new(evaluated.fitness_values().iter().map(|x| x.as_scalar())).unwrap();
+        let weighted_distribution = if self.normalize {
+            let low = evaluated.lowest_fitness().as_scalar();
+            let high = evaluated.highest_fitness().as_scalar();
+            let fitness = evaluated.fitness_values().iter().map(|f| (f.as_scalar() - low) / (high - low));
+            WeightedIndex::new(fitness).unwrap()
+        } else {
+            let fitness = evaluated.fitness_values().iter().map(|f| f.as_scalar());
+            WeightedIndex::new(fitness).unwrap()
+        };
             //WeightedDistribution::from_scalar_values(evaluated.fitness_values());
         {
             let arc = Arc::new(Mutex::new(rng));
