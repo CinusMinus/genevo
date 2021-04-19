@@ -53,7 +53,7 @@ impl UniformReinserter {
 }
 
 impl GeneticOperator for UniformReinserter {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Uniform-Reinserter".to_string()
     }
 }

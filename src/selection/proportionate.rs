@@ -82,7 +82,7 @@ impl RouletteWheelSelector {
 impl SingleObjective for RouletteWheelSelector {}
 
 impl GeneticOperator for RouletteWheelSelector {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Roulette-Wheel-Selection".to_string()
     }
 }
@@ -176,7 +176,7 @@ impl UniversalSamplingSelector {
 impl SingleObjective for UniversalSamplingSelector {}
 
 impl GeneticOperator for UniversalSamplingSelector {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Stochastic-Universal-Sampling-Selection".to_string()
     }
 }

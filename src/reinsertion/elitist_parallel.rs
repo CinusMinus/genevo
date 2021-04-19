@@ -72,6 +72,23 @@ impl<G, F, E> ParallelElitistReinserter<G, F, E>
     }
 }
 
+/// Can be used for single-objective optimization
+impl<G, F, E> SingleObjective for ParallelElitistReinserter<G, F, E>
+    where
+        G: Genotype,
+        F: Fitness,
+        E: FitnessFunction<G, F>,
+{
+}
+/// Can be used for multi-objective optimization
+impl<G, F, E> MultiObjective for ParallelElitistReinserter<G, F, E>
+    where
+        G: Genotype,
+        F: Fitness,
+        E: FitnessFunction<G, F>,
+{
+}
+
 
 impl<G, F, E> GeneticOperator for ParallelElitistReinserter<G, F, E>
     where
@@ -79,7 +96,7 @@ impl<G, F, E> GeneticOperator for ParallelElitistReinserter<G, F, E>
         F: Fitness,
         E: FitnessFunction<G, F>,
 {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Elitist-Reinserter".to_string()
     }
 }

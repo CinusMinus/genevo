@@ -95,7 +95,7 @@ where
     F: Fitness,
     E: FitnessFunction<G, F>,
 {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Uniform-Reinserter".to_string()
     }
 }

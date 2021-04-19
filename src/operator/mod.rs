@@ -31,7 +31,7 @@ pub trait MultiObjective {}
 /// There are unary operators that operate on one genotype at a time, e.g.
 /// mutation operators, and binary operators that work on two genotypes
 /// at a time, e.g. crossover operators.
-pub trait GeneticOperator: Clone {
+pub trait GeneticOperator {
     /// The name of the operator used for display purposes. The name should
     /// make clear to the user of the simulation which implementation of which
     /// kind of operator is being performed.
@@ -39,7 +39,7 @@ pub trait GeneticOperator: Clone {
     /// It is recommended to combine some name of the method implemented by
     /// this operator (first part) with some name for the kind of operator
     /// (second part), e.g. "Flip-Bit-Mutation" or "Roulette-Wheel-Selection".
-    fn name() -> String;
+    fn name(&self) -> String;
 }
 
 /// A `SelectionOp` defines the function of how to select solutions for being

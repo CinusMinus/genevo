@@ -31,7 +31,7 @@ impl OrderOneCrossover {
 }
 
 impl GeneticOperator for OrderOneCrossover {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Order-One-Crossover".to_string()
     }
 }
@@ -58,7 +58,7 @@ impl PartiallyMappedCrossover {
 }
 
 impl GeneticOperator for PartiallyMappedCrossover {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Partially-Mapped-Crossover".to_string()
     }
 }

@@ -143,7 +143,7 @@ impl SingleObjective for TournamentSelector {}
 impl MultiObjective for TournamentSelector {}
 
 impl GeneticOperator for TournamentSelector {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Tournament-Selection".to_string()
     }
 }

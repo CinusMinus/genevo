@@ -37,7 +37,7 @@ impl<G> GeneticOperator for RandomValueMutator<G>
 where
     G: Genotype + RandomGenomeMutation,
 {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Random-Value-Mutator".to_string()
     }
 }
@@ -232,7 +232,7 @@ impl<G> GeneticOperator for BreederValueMutator<G>
 where
     G: Genotype + BreederGenomeMutation,
 {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Breeder-Value-Mutator".to_string()
     }
 }

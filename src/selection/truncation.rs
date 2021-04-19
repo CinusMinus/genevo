@@ -73,7 +73,7 @@ impl SingleObjective for MaximizeSelector {}
 impl MultiObjective for MaximizeSelector {}
 
 impl GeneticOperator for MaximizeSelector {
-    fn name() -> String {
+    fn name(&self) -> String {
         "Maximizing-Truncation-Selection".to_string()
     }
 }
