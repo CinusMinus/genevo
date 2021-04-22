@@ -35,7 +35,6 @@ use crate::{
     statistic::{timed, ProcessingTime, TimedResult, TrackProcessingTime},
 };
 use chrono::Local;
-use rayon;
 use std::{
     fmt::{self, Display},
     marker::PhantomData,

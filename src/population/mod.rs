@@ -100,7 +100,6 @@ use crate::{
     random::{get_rng, random_seed, Prng, Rng, Seed},
 };
 use rand::distributions::uniform::SampleUniform;
-use rayon;
 use std::{fmt::Debug, marker::PhantomData};
 
 /// The `Population` defines a set of possible solutions to the optimization
