@@ -16,15 +16,16 @@
 
 use crate::{
     algorithm::EvaluatedPopulation,
-    genetic::{AsScalar, Fitness, Genotype, Parents},
+    genetic::{AsScalar, Fitness, Genotype},
     operator::{GeneticOperator, SelectionOp, SingleObjective},
     random::{random_probability, WeightedDistribution, Prng},
 };
 use std::sync::{Arc, Mutex};
-use rayon::iter::{IntoParallelIterator, ParallelIterator, IndexedParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
 use std::borrow::Borrow;
+use crate::genetic::ParentIndices;
 
 /// The `RouletteWheelSelector` implements stochastic fitness proportionate
 /// selection. Each candidate is picked randomly with a probability of being
@@ -101,12 +102,11 @@ where
     G: Genotype,
     F: Fitness + AsScalar + Default + Sync,
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<ParentIndices> {
         let rc_individuals = evaluated.individuals();
         let individuals: &Vec<_> = rc_individuals.borrow();
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
-        let mut parents: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
         let weighted_distribution = if self.normalize {
             let low = evaluated.lowest_fitness().as_scalar();
             let high = evaluated.highest_fitness().as_scalar();
@@ -128,12 +128,11 @@ where
                 let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
                 for _ in 0..self.num_individuals_per_parents {
                     let selected = weighted_distribution.sample(rng);
-                    tuple.push(individuals[selected].clone());
+                    tuple.push(selected);
                 }
                 tuple
-            }).collect_into_vec(&mut parents);
+            }).collect()
         }
-        parents
     }
 }
 
@@ -203,7 +202,7 @@ where
     G: Genotype,
     F: Fitness + AsScalar,
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<ParentIndices> {
         let individuals = evaluated.individuals();
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
@@ -217,7 +216,7 @@ where
             let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
             for _ in 0..self.num_individuals_per_parents {
                 let selected = weighted_distribution.select(pointer);
-                tuple.push(individuals[selected].clone());
+                tuple.push(selected);
                 pointer += distance;
             }
             parents.push(tuple);

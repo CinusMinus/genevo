@@ -69,8 +69,8 @@ impl CrossoverOp<Vec<usize>> for PartiallyMappedCrossover {
     }
 }
 
-fn multi_parents_cyclic_crossover<'a, FN, R>(
-    parents: ParentsSlice<'a, Vec<usize>>,
+fn multi_parents_cyclic_crossover<'a, 'b, FN, R>(
+    parents: ParentsSlice<'a, 'b, Vec<usize>>,
     crossover: FN,
     rng: &mut R,
 ) -> Children<Vec<usize>>

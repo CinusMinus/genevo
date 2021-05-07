@@ -14,6 +14,7 @@ use crate::{
     genetic::{Children, Fitness, Genotype, Offspring, Parents},
     random::Prng,
 };
+use crate::genetic::ParentIndices;
 
 /// Marker trait for genetic operators and functions that are used for
 /// single-objective optimization.
@@ -55,7 +56,7 @@ where
         &self,
         population: &EvaluatedPopulation<G, F>,
         rng: &mut Prng,
-    ) -> Vec<Parents<G>>;
+    ) -> Vec<ParentIndices>;
 }
 
 /// A `CrossoverOp` defines a function of how to crossover two

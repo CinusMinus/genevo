@@ -105,13 +105,14 @@ mod smallvec_uniform_cross_breeder {
     use crate::random::{Prng, Rng};
     use smallvec::{Array, SmallVec};
     use std::fmt::Debug;
+    use crate::genetic::{Parents, Children};
 
     impl<A, V> CrossoverOp<SmallVec<A>> for UniformCrossBreeder
     where
         A: Array<Item = V> + Sync,
         V: Clone + Debug + PartialEq + Send + Sync,
     {
-        fn crossover(&self, parents: Vec<SmallVec<A>>, rng: &mut Prng) -> Vec<SmallVec<A>>
+        fn crossover(&self, parents: Parents<SmallVec<A>>, rng: &mut Prng) -> Children<SmallVec<A>>
         {
             let genome_length = parents[0].len();
             let num_parents = parents.len();

@@ -200,7 +200,9 @@ where
 
         // Stage 3: The making of a new population:
         let selection = timed(|| self.selector.select_from(&evaluation.result, rng)).run();
-        let mut breeding = par_breed_offspring(selection.result, &self.breeder, &self.mutator, rng);
+        let rc_individuals = evaluation.result.individuals();
+        let parents: Vec<Parents<G>> = selection.result.into_iter().map(|indices| indices.into_iter().map(|i| &rc_individuals[i]).collect()).collect();
+        let mut breeding = par_breed_offspring(parents, &self.breeder, &self.mutator, rng);
         let reinsertion = timed(|| {
             self.reinserter
                 .combine(&mut breeding.result, &evaluation.result, rng)

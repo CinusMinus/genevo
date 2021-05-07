@@ -7,10 +7,11 @@
 
 use crate::{
     algorithm::EvaluatedPopulation,
-    genetic::{Fitness, Genotype, Parents},
+    genetic::{Fitness, Genotype},
     operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective},
     random::Prng,
 };
+use crate::genetic::ParentIndices;
 
 /// The `MaximizeSelector` selects the best performing `genetic::Genotype`s
 /// from the population.
@@ -83,7 +84,7 @@ where
     G: Genotype,
     F: Fitness,
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, _: &mut Prng) -> Vec<Parents<G>> {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, _: &mut Prng) -> Vec<ParentIndices> {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 
@@ -96,21 +97,15 @@ where
         let num_parents_to_select =
             (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let pool_size = mating_pool.len();
-        let mut selected: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
 
         let mut index_m = 0;
-        for _ in 0..num_parents_to_select {
-            let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
-            for _ in 0..self.num_individuals_per_parents {
-                // index into mating pool
+        (0..num_parents_to_select).map(|_| {
+            (0..self.num_individuals_per_parents).map(|_| {
                 index_m %= pool_size;
-                // index into individuals slice
-                let index_i = mating_pool[index_m];
-                tuple.push(individuals[index_i].clone());
+                let res_index = mating_pool[index_m];
                 index_m += 1;
-            }
-            selected.push(tuple);
-        }
-        selected
+                res_index
+            }).collect()
+        }).collect()
     }
 }

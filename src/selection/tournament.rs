@@ -5,11 +5,12 @@
 
 use crate::{
     algorithm::EvaluatedPopulation,
-    genetic::{Fitness, Genotype, Parents},
+    genetic::{Fitness, Genotype},
     operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective},
     random::Prng,
 };
 use rand::seq::IteratorRandom;
+use crate::genetic::ParentIndices;
 
 /// The `TournamentSelector` implements the tournament selection method.
 /// It runs tournaments with a small size of participants and picks the best
@@ -127,7 +128,7 @@ where
     G: Genotype,
     F: Fitness,
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<Parents<G>> {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut Prng) -> Vec<ParentIndices> {
         let individuals = evaluated.individuals();
         let population_size = individuals.len();
         let fitness = evaluated.fitness_values();
@@ -138,7 +139,6 @@ where
                     .choose_multiple(rng, self.tournament_size)
                     .into_iter()
                     .max_by(|a, b| fitness[*a].cmp(&fitness[*b]))
-                    .map(|n| individuals[n].clone())
             }).collect()
         }).collect()
     }
