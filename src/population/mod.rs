@@ -101,6 +101,8 @@ use crate::{
 };
 use rand::distributions::uniform::SampleUniform;
 use std::{fmt::Debug, marker::PhantomData};
+use std::sync::{Arc, Mutex};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 /// The `Population` defines a set of possible solutions to the optimization
 /// or search problem.
@@ -146,33 +148,21 @@ where
 pub struct PopulationBuilder;
 
 impl PopulationBuilder {
-    fn build_population<B, G>(genome_builder: &B, size: usize, mut rng: Prng) -> Population<G>
+    fn build_population<B, G>(genome_builder: &B, size: usize, rng: Prng) -> Population<G>
     where
         B: GenomeBuilder<G>,
         G: Genotype,
     {
-        if size < 50 {
-            Population {
-                individuals: (0..size)
-                    .map(|index| genome_builder.build_genome(index, &mut rng))
-                    .collect(),
-            }
-        } else {
-            rng.jump();
+        let arc = Arc::new(Mutex::new(rng));
+        let individuals = (0..size).into_par_iter().map_init(|| {
+            let mut rng = arc.lock().unwrap();
             let rng1 = rng.clone();
             rng.jump();
-            let rng2 = rng.clone();
-            let left_size = size / 2;
-            let right_size = size - left_size;
-            let (left_population, right_population) = rayon::join(
-                || Self::build_population(genome_builder, left_size, rng1),
-                || Self::build_population(genome_builder, right_size, rng2),
-            );
-            let mut right_individuals = right_population.individuals;
-            let mut individuals = left_population.individuals;
-            individuals.append(&mut right_individuals);
-            Population { individuals }
-        }
+            rng1
+        }, |rng, i| {
+            genome_builder.build_genome(i, rng)
+        }).collect();
+        Population { individuals }
     }
 }
 
