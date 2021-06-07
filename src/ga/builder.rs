@@ -5,7 +5,7 @@ use crate::{
     population::Population,
     statistic::ProcessingTime,
 };
-use std::{marker::PhantomData, rc::Rc};
+use std::marker::PhantomData;
 
 const DEFAULT_MIN_POPULATION_SIZE: usize = 6;
 
@@ -49,7 +49,7 @@ where
             mutator: self.mutator,
             reinserter: self.reinserter,
             min_population_size: self.min_population_size,
-            population: Rc::new(self.initial_population.individuals().to_vec()),
+            population: self.initial_population.individuals().to_vec(),
             initial_population: self.initial_population,
             processing_time: ProcessingTime::zero(),
         }

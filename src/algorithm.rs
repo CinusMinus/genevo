@@ -7,7 +7,7 @@ use crate::{
     random::Prng,
 };
 use chrono::{DateTime, Local};
-use std::{error::Error, fmt::Debug, rc::Rc};
+use std::{error::Error, fmt::Debug};
 
 /// An `Algorithm` defines the steps to be processed in a
 /// `simulation::Simulation`. The `Simulation` uses an implementation of an
@@ -85,7 +85,7 @@ where
     G: Genotype,
     F: Fitness,
 {
-    individuals: Rc<Vec<G>>,
+    individuals: Vec<G>,
     fitness_values: Vec<F>,
     highest_fitness: F,
     lowest_fitness: F,
@@ -99,7 +99,7 @@ where
 {
     /// Construct a new instance of the `EvaluatedPopulation` struct.
     pub fn new(
-        individuals: Rc<Vec<G>>,
+        individuals: Vec<G>,
         fitness_values: Vec<F>,
         highest_fitness: F,
         lowest_fitness: F,
@@ -115,8 +115,8 @@ where
     }
 
     /// Returns the individuals of the population that has been evaluated.
-    pub fn individuals(&self) -> Rc<Vec<G>> {
-        self.individuals.clone()
+    pub fn individuals(&self) -> &Vec<G> {
+        &self.individuals
     }
 
     /// Returns the fitness values of all individuals of the evaluated

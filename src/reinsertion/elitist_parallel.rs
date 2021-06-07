@@ -109,8 +109,7 @@ impl<G, F, E> ReinsertionOp<G, F> for ParallelElitistReinserter<G, F, E>
         E: FitnessFunction<G, F> + Sync + Send,
 {
     fn combine(&self, offspring: &mut Offspring<G>, population: &EvaluatedPopulation<G, F>, _rng: &mut Prng) -> Vec<G> {
-        let old_individuals_rc = population.individuals();
-        let old_individuals = old_individuals_rc.as_ref();
+        let old_individuals = population.individuals();
         let old_fitness = population.fitness_values();
         let mut old_indices: Vec<_> = (0..old_fitness.len()).into_iter().collect();
         old_indices.par_sort_unstable_by(|x, y| old_fitness[*x].cmp(&old_fitness[*y]).reverse());

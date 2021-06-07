@@ -38,7 +38,6 @@ use chrono::Local;
 use std::{
     fmt::{self, Display},
     marker::PhantomData,
-    rc::Rc,
 };
 
 /// The `State` struct holds the results of one pass of the genetic algorithm
@@ -109,7 +108,7 @@ where
     reinserter: R,
     min_population_size: usize,
     initial_population: Population<G>,
-    population: Rc<Vec<G>>,
+    population: Vec<G>,
     processing_time: ProcessingTime,
 }
 
@@ -216,7 +215,7 @@ where
             + breeding.time
             + reinsertion.time;
         let next_generation = reinsertion.result;
-        self.population = Rc::new(next_generation);
+        self.population = next_generation;
         Ok(State {
             evaluated_population: evaluation.result,
             best_solution: best_solution.result,
@@ -226,13 +225,13 @@ where
 
     fn reset(&mut self) -> Result<bool, Self::Error> {
         self.processing_time = ProcessingTime::zero();
-        self.population = Rc::new(self.initial_population.individuals().to_vec());
+        self.population = self.initial_population.individuals().to_vec();
         Ok(true)
     }
 }
 
 fn evaluate_fitness<G, F, E>(
-    population: Rc<Vec<G>>,
+    population: Vec<G>,
     evaluator: &E,
 ) -> TimedResult<EvaluatedPopulation<G, F>>
 where
