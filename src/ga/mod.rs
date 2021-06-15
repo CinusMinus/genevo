@@ -39,6 +39,9 @@ use std::{
     fmt::{self, Display},
     marker::PhantomData,
 };
+use std::cmp::{max, min};
+use rayon::iter::{IntoParallelIterator, ParallelIterator, IntoParallelRefIterator, IndexedParallelIterator};
+use std::sync::{Arc, Mutex};
 
 /// The `State` struct holds the results of one pass of the genetic algorithm
 /// loop, i.e. the processing of the evolution from one generation to the next
@@ -53,8 +56,7 @@ where
     pub evaluated_population: EvaluatedPopulation<G, F>,
     /// Best solution of this generation.
     pub best_solution: BestSolution<G, F>,
-    /// Processing time for this generation. In case of parallel processing it
-    /// is the accumulated time spent by each thread.
+    /// Processing time for this generation.
     pub processing_time: ProcessingTime,
 }
 
@@ -199,8 +201,8 @@ where
 
         // Stage 3: The making of a new population:
         let selection = timed(|| self.selector.select_from(&evaluation.result, rng)).run();
-        let rc_individuals = evaluation.result.individuals();
-        let parents: Vec<Parents<G>> = selection.result.into_iter().map(|indices| indices.into_iter().map(|i| &rc_individuals[i]).collect()).collect();
+        let individuals = evaluation.result.individuals();
+        let parents: Vec<Parents<G>> = selection.result.into_iter().map(|indices| indices.into_iter().map(|i| &individuals[i]).collect()).collect();
         let mut breeding = par_breed_offspring(parents, &self.breeder, &self.mutator, rng);
         let reinsertion = timed(|| {
             self.reinserter
@@ -214,8 +216,7 @@ where
             + selection.time
             + breeding.time
             + reinsertion.time;
-        let next_generation = reinsertion.result;
-        self.population = next_generation;
+        self.population = reinsertion.result;
         Ok(State {
             evaluated_population: evaluation.result,
             best_solution: best_solution.result,
@@ -262,49 +263,14 @@ where
     F: Fitness + Send + Sync,
     E: FitnessFunction<G, F> + Sync,
 {
-    if population.len() < 50 {
-        timed(|| {
-            let mut fitness = Vec::with_capacity(population.len());
-            let mut highest = evaluator.lowest_possible_fitness();
-            let mut lowest = evaluator.highest_possible_fitness();
-            for genome in population.iter() {
-                let score = evaluator.fitness_of(genome);
-                if score > highest {
-                    highest = score.clone();
-                }
-                if score < lowest {
-                    lowest = score.clone();
-                }
-                fitness.push(score);
-            }
-            (fitness, highest, lowest)
-        })
-        .run()
-    } else {
-        let mid_point = population.len() / 2;
-        let (l_slice, r_slice) = population.split_at(mid_point);
-        let (mut left, mut right) = rayon::join(
-            || par_evaluate_fitness(l_slice, evaluator),
-            || par_evaluate_fitness(r_slice, evaluator),
-        );
+    timed(|| {
         let mut fitness = Vec::with_capacity(population.len());
-        fitness.append(&mut left.result.0);
-        fitness.append(&mut right.result.0);
-        let highest = if left.result.1 >= right.result.1 {
-            left.result.1
-        } else {
-            right.result.1
-        };
-        let lowest = if left.result.2 <= right.result.2 {
-            left.result.2
-        } else {
-            right.result.2
-        };
-        TimedResult {
-            result: (fitness, highest, lowest),
-            time: left.time + right.time,
-        }
-    }
+        population.into_par_iter().map(|genome| evaluator.fitness_of(genome)).collect_into_vec(&mut fitness);
+        let id = || (evaluator.lowest_possible_fitness(), evaluator.highest_possible_fitness());
+        let minmax = |xs: (_,_), x: (F, F)| (max(xs.0, x.0), min(xs.1, x.1));
+        let (highest, lowest) = fitness.par_iter().map(|x| (x.clone(), x.clone())).reduce(id, minmax);
+        (fitness, highest, lowest)
+    }).run()
 }
 
 /// Determines the best solution of the current population
@@ -347,38 +313,44 @@ where
     C: CrossoverOp<G> + Sync,
     M: MutationOp<G> + Sync,
 {
-    if parents.len() < 50 {
-        timed(|| {
-            let mut offspring: Offspring<G> = Vec::with_capacity(parents.len() * parents[0].len());
-            for parents in parents {
-                let children = breeder.crossover(parents, rng);
-                for child in children {
-                    let mutated = mutator.mutate(child, rng);
-                    offspring.push(mutated);
-                }
+    timed(|| {
+        let arc = Arc::new(Mutex::new(rng));
+        parents.into_par_iter().map_init(
+            || {
+                let mut rng = arc.lock().unwrap();
+                let rng1 = rng.clone();
+                rng.jump();
+                rng1
+            },
+            |rng, p| {
+                breeder.crossover(p, rng).into_par_iter()
             }
-            offspring
-        })
-        .run()
-    } else {
-        rng.jump();
-        let mut rng1 = rng.clone();
-        rng.jump();
-        let mut rng2 = rng.clone();
-        let mid_point = parents.len() / 2;
-        let mut offspring = Vec::with_capacity(parents.len() * 2);
-        let mut parents = parents;
-        let r_slice = parents.drain(mid_point..).collect();
-        let l_slice = parents;
-        let (mut left, mut right) = rayon::join(
-            || par_breed_offspring(l_slice, breeder, mutator, &mut rng1),
-            || par_breed_offspring(r_slice, breeder, mutator, &mut rng2),
-        );
-        offspring.append(&mut left.result);
-        offspring.append(&mut right.result);
-        TimedResult {
-            result: offspring,
-            time: left.time + right.time,
-        }
+        ).flatten().map_init(|| {
+            let mut rng = arc.lock().unwrap();
+            let rng1 = rng.clone();
+            rng.jump();
+            rng1
+        },
+        |rng, c| {
+            mutator.mutate(c, rng)
+        }).collect()
+    }).run()
+}
+
+#[cfg(test)]
+mod tests {
+    use rand::{thread_rng, Rng};
+    use rand::distributions::Uniform;
+    use std::cmp::{min, max};
+    use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
+    #[test]
+    fn folding() {
+        let values: Vec<_> = thread_rng().sample_iter(Uniform::new(0, 100)).take(500).collect();
+        let minmax = |xs: (_,_,_), x: _| (min(xs.0, x), max(xs.1, x), xs.2 + x);
+        let reducemax = |xs: (_,_,_), ys: (_,_,_)| (min(xs.0, ys.0), max(xs.1, ys.1), xs.2 + ys.2);
+        let id = || (i32::MAX, 0, 0);
+        let result = values.par_iter().cloned().fold(id, minmax).reduce(id, reducemax);
+        assert_eq!((*values.iter().min().unwrap(), *values.iter().max().unwrap(), values.iter().sum::<i32>()), result);
     }
 }
