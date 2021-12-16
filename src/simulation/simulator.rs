@@ -239,9 +239,8 @@ where
                 self.started_at = Local::now();
             }
         }
-        self.process_one_iteration().and_then(|state|
+        self.process_one_iteration().map(|state| match self.termination.evaluate(&state) {
             // Stage 5: Be aware of the termination:
-            Ok(match self.termination.evaluate(&state) {
                 StopFlag::Continue => {
                     SimResult::Intermediate(state)
                 },
@@ -251,7 +250,7 @@ where
                     self.run_mode = RunMode::NotRunning;
                     SimResult::Final(state, processing_time, duration, reason)
                 },
-            }))
+            })
     }
 
     fn stop(&mut self) -> Result<bool, Self::Error> {

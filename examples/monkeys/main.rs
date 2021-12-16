@@ -69,7 +69,7 @@ impl FitnessFunction<TextGenome, usize> for FitnessCalc {
             }
         }
         let fraction = score as f32 / TARGET_TEXT.len() as f32;
-        (fraction * fraction * 100_00. + 0.5).floor() as usize
+        (fraction * fraction * 10_000. + 0.5).floor() as usize
     }
 
     fn average(&self, fitness_values: &[usize]) -> usize {
@@ -77,7 +77,7 @@ impl FitnessFunction<TextGenome, usize> for FitnessCalc {
     }
 
     fn highest_possible_fitness(&self) -> usize {
-        100_00
+        10_000
     }
 
     fn lowest_possible_fitness(&self) -> usize {

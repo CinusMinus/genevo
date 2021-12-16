@@ -119,7 +119,7 @@ impl<G, F, E> ReinsertionOp<G, F> for ParallelElitistReinserter<G, F, E>
         let num_offspring = (population_size as f64 * self.replace_ratio + 0.5).floor() as usize;
         //evaluate offspring fitness
         let mut offspring_fitness = Vec::with_capacity(offspring.len());
-        offspring.into_par_iter().map(|x| {let fitness = self.fitness_evaluator.fitness_of(&x); (x, fitness)}).collect_into_vec(&mut offspring_fitness);
+        offspring.into_par_iter().map(|x| {let fitness = self.fitness_evaluator.fitness_of(x); (x, fitness)}).collect_into_vec(&mut offspring_fitness);
         offspring_fitness.par_sort_unstable_by(|x, y| x.1.cmp(&y.1).reverse());
 
         if self.offspring_has_precedence {

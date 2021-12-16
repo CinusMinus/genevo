@@ -86,7 +86,7 @@ where
     let mut p2_index = 1;
     while p1_index < parents_size {
         let (cutpoint1, cutpoint2) = random_cut_points(rng, genome_length);
-        let genome = crossover(&parents[p1_index], &parents[p2_index], cutpoint1, cutpoint2);
+        let genome = crossover(parents[p1_index], parents[p2_index], cutpoint1, cutpoint2);
         offspring.push(genome);
         p1_index += 1;
         p2_index += 1;
