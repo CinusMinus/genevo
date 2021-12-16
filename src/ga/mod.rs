@@ -284,7 +284,7 @@ where
 {
     timed(|| {
         let evaluated = score_board
-            .evaluated_individual_with_fitness(&score_board.highest_fitness())
+            .evaluated_individual_with_fitness(score_board.highest_fitness())
             .unwrap_or_else(|| {
                 panic!(
                     "No fitness value of {:?} found in this EvaluatedPopulation",

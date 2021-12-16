@@ -179,7 +179,7 @@ where
     /// Note: This function might be more expensive due to the data structure
     /// chosen for this struct. So use it sparingly.
     pub fn evaluated_individual_with_fitness(&self, fitness: &F) -> Option<Evaluated<G, F>> {
-        self.index_of_fitness(&fitness).map(|index| Evaluated {
+        self.index_of_fitness(fitness).map(|index| Evaluated {
             genome: self.individuals[index].clone(),
             fitness: self.fitness_values[index].clone(),
         })

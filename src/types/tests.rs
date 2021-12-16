@@ -3,6 +3,7 @@ use galvanic_assert::matchers::*;
 use galvanic_assert::*;
 use std::{i16, i32, i64, i8, isize, u16, u32, u64, u8, usize};
 
+/*
 #[test]
 fn abs_diff_of_signed_1_and_0() {
     expect_that!(&1i8.abs_diff(&0i8), is(equal_to(1i8)));
@@ -228,3 +229,4 @@ fn abs_diff_of_unsigned_1_and_max() {
     expect_that!(&1u64.abs_diff(&u64::MAX), is(equal_to(u64::MAX - 1)));
     expect_that!(&1usize.abs_diff(&usize::MAX), is(equal_to(usize::MAX - 1)));
 }
+*/
